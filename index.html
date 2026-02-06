@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FitCSVTool on CheerPJ</title>
+    <script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script>
+  </head>
+  <body>
+    <h1>FitCSVTool.jar on CheerPJ</h1>
+    <fieldset><legend>FIT -> CSV</legend> <input type="file" id="file_fit" accept=".fit" disabled></fieldset>
+    <fieldset><legend>CSV -> FIT</legend> <input type="file" id="file_csv" accept=".csv" disabled></fieldset>
+    <div id="message">Initializing CheerPJ...</div>
+    <script>
+function message(text){
+  document.getElementById("message").innerText = text;
+}
+
+const $file_fit = document.getElementById("file_fit");
+const $file_csv = document.getElementById("file_csv");
+
+(async function () {
+  await cheerpjInit();
+  $file_fit.disabled = false;
+  $file_csv.disabled = false;
+  message("Ready");
+
+  // FIT -> CSV
+  $file_fit.addEventListener("change", function(e){
+    $file_fit.disabled = true;
+    $file_csv.disabled = true;
+    message("loading...");
+    const reader = new FileReader();
+    reader.onload = async function(e2){
+      await cheerpOSAddStringFile("/str/input.fit", new Uint8Array(e2.target.result));
+
+      message("converting...");
+      await cheerpjRunJar("/app/fitcsv_cheerpj/FitCSVTool.jar", "-b", "/str/input.fit", "/files/output.csv");
+
+      message("downloading...");
+      const blob = await cjFileBlob("/files/output.csv");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = e.target.files[0].name.replace(/\.fit/i, ".csv");
+      link.click();
+      URL.revokeObjectURL(url);
+
+      message("Ready");
+      $file_fit.disabled = false;
+      $file_csv.disabled = false;
+      $file_fit.value = null;
+    };
+    reader.readAsArrayBuffer(e.target.files[0]);
+  });
+
+  // CSV -> FIT
+  $file_csv.addEventListener("change", function(e){
+    $file_fit.disabled = true;
+    $file_csv.disabled = true;
+    message("loading...");
+    const reader = new FileReader();   
+    reader.onload = async function(e2){
+      await cheerpOSAddStringFile("/str/input.csv", new Uint8Array(e2.target.result));
+
+      message("converting...");
+      await cheerpjRunJar("/app/fitcsv_cheerpj/FitCSVTool.jar", "-c", "/str/input.csv", "/files/output.fit");
+
+      message("downloading...");
+      const blob = await cjFileBlob("/files/output.fit");
+      const url = URL.createObjectURL(blob);   
+      const link = document.createElement("a");
+      link.href = url; 
+      link.download = e.target.files[0].name.replace(/\.csv/i, ".fit");
+      link.click();    
+      URL.revokeObjectURL(url);
+
+      message("Ready");
+      $file_fit.disabled = false;
+      $file_csv.disabled = false;
+      $file_csv.value = null;
+    };
+    reader.readAsArrayBuffer(e.target.files[0]);
+  });
+})();
+    </script>
+  </body>
+</html>
