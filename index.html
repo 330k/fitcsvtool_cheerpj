@@ -2,14 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>FitCSVTool on CheerPJ</title>
+    <title>Online Fit CSV Tool</title>
     <script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script>
   </head>
   <body>
-    <h1>FitCSVTool.jar on CheerPJ</h1>
-    <fieldset><legend>FIT -> CSV</legend> <input type="file" id="file_fit" accept=".fit" disabled></fieldset>
-    <fieldset><legend>CSV -> FIT</legend> <input type="file" id="file_csv" accept=".csv" disabled></fieldset>
+    <h1>Online Fit CSV Tool</h1>
+    <fieldset><legend>FIT to CSV</legend> <input type="file" id="file_fit" accept=".fit" disabled></fieldset>
+    <fieldset><legend>CSV to FIT</legend> <input type="file" id="file_csv" accept=".csv" disabled></fieldset>
     <div id="message">Initializing CheerPJ...</div>
+    <h2>Summary</h2>
+    <div>This tool runs FitCSVTool.jar on your browser with CheerPJ, a WebAssembly based JavaVM.</div>
+    <div>Select .fit or .csv file. After several seconds, the converted file will be downloaded.</div>
+    <h2>References</h2>
+    <ul>
+     <li><a href="https://developer.garmin.com/fit/fitcsvtool/">FIT CSV Tool | FIT SDK | Garmin Developers</a></li>
+     <li><a href="https://cheerpj.com/" target="_blank">CheerPJ</a></li>
+    </ul>
     <script>
 function message(text){
   document.getElementById("message").innerText = text;
@@ -34,7 +42,7 @@ const $file_csv = document.getElementById("file_csv");
       await cheerpOSAddStringFile("/str/input.fit", new Uint8Array(e2.target.result));
 
       message("converting...");
-      await cheerpjRunJar("/app/fitcsv_cheerpj/FitCSVTool.jar", "-b", "/str/input.fit", "/files/output.csv");
+      await cheerpjRunJar("/app/fitcsvtool_cheerpj/FitCSVTool.jar", "-b", "/str/input.fit", "/files/output.csv");
 
       message("downloading...");
       const blob = await cjFileBlob("/files/output.csv");
