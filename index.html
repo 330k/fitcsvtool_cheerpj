@@ -71,7 +71,7 @@ const $file_csv = document.getElementById("file_csv");
       await cheerpOSAddStringFile("/str/input.csv", new Uint8Array(e2.target.result));
 
       message("converting...");
-      await cheerpjRunJar("/app/fitcsv_cheerpj/FitCSVTool.jar", "-c", "/str/input.csv", "/files/output.fit");
+      await cheerpjRunJar("/app/fitcsvtool_cheerpj/FitCSVTool.jar", "-c", "/str/input.csv", "/files/output.fit");
 
       message("downloading...");
       const blob = await cjFileBlob("/files/output.fit");
