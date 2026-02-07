@@ -10,24 +10,30 @@
     <fieldset><legend>FIT to CSV</legend> <input type="file" id="file_fit" accept=".fit" disabled></fieldset>
     <fieldset><legend>CSV to FIT</legend> <input type="file" id="file_csv" accept=".csv" disabled></fieldset>
     <div id="message">Initializing CheerPJ...</div>
+    <pre id="console"></pre>
     <h2>Summary</h2>
     <div>This tool runs FitCSVTool.jar on your browser with CheerPJ, a WebAssembly based JavaVM.</div>
     <div>Select .fit or .csv file. After several seconds, the converted file will be downloaded.</div>
     <h2>References</h2>
     <ul>
-     <li><a href="https://developer.garmin.com/fit/fitcsvtool/">FIT CSV Tool | FIT SDK | Garmin Developers</a></li>
+     <li><a href="https://developer.garmin.com/fit/fitcsvtool/" target="_blank">FIT CSV Tool | FIT SDK | Garmin Developers</a></li>
      <li><a href="https://cheerpj.com/" target="_blank">CheerPJ</a></li>
     </ul>
     <script>
 function message(text){
   document.getElementById("message").innerText = text;
 }
+function clear_console(){
+  document.getElementById("console").innerText = "";
+}
 
 const $file_fit = document.getElementById("file_fit");
 const $file_csv = document.getElementById("file_csv");
 
 (async function () {
-  await cheerpjInit();
+  await cheerpjInit({
+    logCanvasUpdates: true
+  });
   $file_fit.disabled = false;
   $file_csv.disabled = false;
   message("Ready");
@@ -37,6 +43,7 @@ const $file_csv = document.getElementById("file_csv");
     $file_fit.disabled = true;
     $file_csv.disabled = true;
     message("loading...");
+    clear_console();
     const reader = new FileReader();
     reader.onload = async function(e2){
       await cheerpOSAddStringFile("/str/input.fit", new Uint8Array(e2.target.result));
@@ -66,6 +73,7 @@ const $file_csv = document.getElementById("file_csv");
     $file_fit.disabled = true;
     $file_csv.disabled = true;
     message("loading...");
+    clear_console();
     const reader = new FileReader();   
     reader.onload = async function(e2){
       await cheerpOSAddStringFile("/str/input.csv", new Uint8Array(e2.target.result));
