@@ -12,7 +12,7 @@
     <div id="message">Initializing CheerpJ...</div>
     <pre id="console"></pre>
     <h2>Summary</h2>
-    <div>This tool runs FitCSVTool.jar on your browser with CheerpJ, a WebAssembly based JavaVM.</div>
+    <div>This tool simply runs FitCSVTool.jar on your browser with CheerpJ, a WebAssembly based JavaVM.</div>
     <div>Select .fit or .csv file. After several seconds, the converted file will be downloaded.</div>
     <h2>References</h2>
     <ul>
@@ -51,7 +51,7 @@ const $file_csv = document.getElementById("file_csv");
       await cheerpOSAddStringFile("/str/input.fit", new Uint8Array(e2.target.result));
 
       message("converting...");
-      await cheerpjRunJar("/app/fitcsvtool_cheerpj/FitCSVTool.jar", "-b", "/str/input.fit", "/files/output.csv");
+      await cheerpjRunJar("/app" + (new URL("./", location.href)).pathname + "FitCSVTool.jar", "-b", "/str/input.fit", "/files/output.csv");
 
       message("downloading...");
       const blob = await cjFileBlob("/files/output.csv");
