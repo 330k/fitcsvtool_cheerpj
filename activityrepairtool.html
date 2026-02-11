@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Online Activity Repair Tool (Alpha)</title>
+    <script src="https://cjrtnc.leaningtech.com/4.2/loader.js"></script>
+  </head>
+  <body>
+    <h1>Online Activity Repair Tool (Alpha)</h1>
+    <fieldset><legend>Select FIT file</legend> <input type="file" id="file_fit" accept=".fit" disabled></fieldset>
+    <div id="message">Initializing CheerpJ...</div>
+    <pre id="console"></pre>
+    <h2>Summary</h2>
+    <div>This tool runs ActivityRepairTool.jar on your browser with CheerpJ, a WebAssembly based JavaVM.</div>
+    <div>Select .fit. After several seconds, the repaired file will be downloaded.</div>
+    <h2>References</h2>
+    <ul>
+     <li><a href="https://developer.garmin.com/fit/fitcsvtool/" target="_blank">FIT CSV Tool | FIT SDK | Garmin Developers</a></li>
+     <li><a href="https://cheerpj.com/" target="_blank">CheerpJ</a></li>
+     <li><a href="https://github.com/330k/fitcsvtool_cheerpj/" target="_blank">GitHub</a></li>
+    </ul>
+    <script>
+function message(text){
+  document.getElementById("message").innerText = text;
+}
+function clear_console(){
+  document.getElementById("console").innerText = "";
+}
+
+const APP_BASE = "/app" + (new URL("./", location.href)).pathname;
+const $file_fit = document.getElementById("file_fit");
+
+(async function () {
+  await cheerpjInit({
+    version: 17,
+    preloadResources: {"/lt/17/lib/modules":[0,131072,1179648,2097152,2228224,3801088,3932160,4587520,4849664,5111808,5636096,5898240,6029312,6291456,6815744,7077888,7864320,7995392,9961472,10092544,37486592,37617664,38010880,38141952],"/lt/etc/users":[0,131072],"/lt/etc/localtime":[],"/lt/17/jre/lib/cheerpj-handlers.jar":[0,131072],"/lt/17/jre/lib/cheerpj-awt.jar":[0,131072],"/lt/17/jre/lib/cheerpj-jsobject.jar":[0,131072]}
+  });
+  $file_fit.disabled = false;
+  message("Ready");
+
+  $file_fit.addEventListener("change", function(e){
+    $file_fit.disabled = true;
+    message("loading...");
+    clear_console();
+    const reader = new FileReader();
+    reader.onload = async function(e2){
+      try{
+        await cheerpOSAddStringFile("/str/input.fit", new Uint8Array(e2.target.result));
+        await copyFileToFilesMountPoint("/str/input.fit", "/files/output.fit");
+
+        message("converting...");
+        await cheerpjRunJar(APP_BASE + "ActivityRepairTool.jar", "/files/output.fit");
+
+        message("downloading...");
+        const blob = await cjFileBlob("/files/output_repaired.fit");
+        downloadFile(blob, e.target.files[0].name.replace(/\.fit$/i, "_repaired.fit"));
+      }catch(e){
+        console.error(e);
+      }finally{
+        message("Ready");
+        $file_fit.disabled = false;
+        $file_fit.value = null;
+      }
+    };
+    reader.readAsArrayBuffer(e.target.files[0]);
+  });
+})();
+
+function downloadFile(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function copyFileToFilesMountPoint(src, tgt) {
+  window.lib = window.lib ?? await cheerpjRunLibrary(""); // Create a library mode object
+
+  const inputstream = await lib.java.io.FileInputStream;
+  const outputstream = await lib.java.io.FileOutputStream;
+  const source = await new inputstream(src);
+  const target = await new outputstream(tgt);
+  const buf = new Int8Array(1024);
+  let len;
+
+  while((len = await source.read(buf)) !== -1){
+    await target.write(buf);
+  }
+  await target.flush();
+
+  await target.close();
+  await source.close();
+}
+    </script>
+  </body>
+</html>
